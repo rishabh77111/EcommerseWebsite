@@ -1,6 +1,4 @@
 import mongoose from "mongoose";
-import ENV_CONFIG from "./env.config";
-
 
 export const connectDB=async(DB_URI:string)=>{
     try {
