@@ -1,15 +1,19 @@
 import express from 'express';
-
+import { errorHandler } from './middlewares/errorHandler.middleware';
+import authRoutes from './routes/auth.routes'
 
 const app=express();
 
 //! inbuilt middleware
-
 app.use(express.json());
 
 
+//! routes
+app.use("/api/auth",authRoutes);
+
+
 //! health route
-app.get("/",(req,res)=>{
+app.get("/",(req,res,next)=>{
     res.status(200).json({
         message:"health route is working",
         status:"success",
@@ -20,15 +24,22 @@ app.get("/",(req,res)=>{
 });
 
 //! path not found route
-app.use("/",(req,res)=>{
+app.use("/",(req,res,next)=>{
     const message=`can not ${req.method} on ${req.path}`;
-    res.status(404).json({
-        message,
-        status:"fail",
-        success:false,
-        data:null,
-    });
+
+    // res.status(404).json({
+    //     message,
+    //     status:"fail",
+    //     success:false,
+    //     data:null,
+    // });
+    const error:any=new Error(message);
+    error.status='fail';
+    error.statusCode=404;
+    next(error);
 
 });
+
+app.use(errorHandler);
 
 export default app;
