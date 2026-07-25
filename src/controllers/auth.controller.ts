@@ -1,30 +1,37 @@
 import { NextFunction, Request, Response } from "express";
 import User from "../models/user.model";
 import { comparePassword, hashPassword } from "../utils/bcrypt.util";
+import AppError from "../utils/customError.util";
+import { catchAsync } from "../utils/catchAsync.util";
 
 export const register=async(req:Request,res:Response,next:NextFunction)=>{
     try {
         const {full_name,email,password}=req.body;
 
         if(!full_name){
-            const error:any=new Error("full_name is required");
-            error.status='fail';
-            error.statusCode=400;
-            throw error;
+            // const error:any=new Error("full_name is required");
+            // error.status='fail';
+            // error.statusCode=400;
+            // throw error;
+
+            throw new AppError("full_name is required",400);
         }
 
         if(!email){
-            const error:any=new Error("email is required");
-            error.status='fail';
-            error.statusCode=400;
-            throw error;
+            // const error:any=new Error("email is required");
+            // error.status='fail';
+            // error.statusCode=400;
+            // throw error;
+            throw new AppError("email is required",400);
         }
 
         if(!password){
-            const error:any=new Error("password is required");
-            error.status='fail';
-            error.statusCode=400;
-            throw error;
+            // const error:any=new Error("password is required");
+            // error.status='fail';
+            // error.statusCode=400;
+            // throw error;
+
+            throw new AppError("password is required",400);
         }
 
         const user=new User ({full_name,email});
@@ -56,39 +63,27 @@ export const register=async(req:Request,res:Response,next:NextFunction)=>{
 };
 
 
-export const login=async(req:Request,res:Response,next:NextFunction)=>{
-    try {
+export const login=catchAsync(async(req:Request,res:Response,next:NextFunction)=>{
+ 
         const {email,password}=req.body;
         if(!email){
-            const error:any=new Error("email is required");
-            error.status='fail';
-            error.statusCode=400;
-            throw error;
+            throw new AppError("email is required",400);
         }
 
         if(!password){
-            const error:any=new Error("password is required");
-            error.status='fail';
-            error.statusCode=400;
-            throw error;
+            throw new AppError("password is required",400);
         }
 
         const user=await User.findOne({email}).select("+password");
 
         if(!user){
-            const error:any=new Error("Invalid Credentials");
-            error.status='fail';
-            error.statusCode=400;
-            throw error;
+            throw new AppError("Invalid Credentials",400);
         }
 
         //! isPassword Matched
         const isPasswordMatched=await comparePassword(password,user.password);
          if(!isPasswordMatched){
-            const error:any=new Error("Invalid Credentials");
-            error.status='fail';
-            error.statusCode=400;
-            throw error;
+            throw new AppError("Invalid Credentials",400);
         }
 
         //! success response
@@ -101,11 +96,5 @@ export const login=async(req:Request,res:Response,next:NextFunction)=>{
             },
             status:"success",
             success:true,
-        });
-
-    } catch (error) {
-        next(error);
-    }
-    
-    
-};
+        }); 
+})

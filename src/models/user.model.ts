@@ -1,10 +1,22 @@
 import mongoose from 'mongoose';
+import { Role } from '../@types/enum.type';
+
+
+//? user interface
+interface IUser extends Document {
+  full_name: string;
+  email: string;
+  password: string;
+  role: Role;
+  profile_image?:string,
+}
+
 
 //! user schema
 
 //full_name, email,password
 
-const userSchema=new mongoose.Schema({
+const userSchema=new mongoose.Schema<IUser>({
 
     full_name:{
         type:String,
@@ -22,8 +34,8 @@ const userSchema=new mongoose.Schema({
 
     role:{
         type:String,
-        enum:["USER","ADMIN"],
-        default:"USER",
+        enum:Object.values(Role),
+        default:Role.USER,
     },
 
     password:{
@@ -43,5 +55,5 @@ const userSchema=new mongoose.Schema({
 
 //! user model
 
-const User=mongoose.model("user",userSchema);
+const User=mongoose.model<IUser>("user",userSchema);
 export default User;
