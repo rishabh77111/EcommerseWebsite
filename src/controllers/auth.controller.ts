@@ -3,6 +3,7 @@ import User from "../models/user.model";
 import { comparePassword, hashPassword } from "../utils/bcrypt.util";
 import AppError from "../utils/customError.util";
 import { catchAsync } from "../utils/catchAsync.util";
+import { upload } from "../utils/cloudinary.util";
 
 export const register=async(req:Request,res:Response,next:NextFunction)=>{
     try {
@@ -43,7 +44,13 @@ export const register=async(req:Request,res:Response,next:NextFunction)=>{
         user.password=await hash;
 
         //! profile_image
-
+        if(file){
+            const {path,public_id}=await upload(file,"/profile_images");
+            user.profile_image={
+                path,
+                public_id,
+            }
+        }
 
         await user.save();
 
