@@ -1,6 +1,7 @@
 import express from 'express';
 import { errorHandler } from './middlewares/errorHandler.middleware';
 import authRoutes from './routes/auth.routes'
+import AppError from './utils/customError.util';
 
 const app=express();
 
@@ -8,7 +9,7 @@ const app=express();
 app.use(express.json());
 
 
-//! routes
+//! using routes
 app.use("/api/auth",authRoutes);
 
 
@@ -33,10 +34,10 @@ app.use("/",(req,res,next)=>{
     //     success:false,
     //     data:null,
     // });
-    const error:any=new Error(message);
-    error.status='fail';
-    error.statusCode=404;
-    next(error);
+    // const error:any=new Error(message);
+    // error.status='fail';
+    // error.statusCode=404;
+    next(new AppError(message,404));
 
 });
 

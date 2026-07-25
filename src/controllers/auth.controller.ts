@@ -7,6 +7,8 @@ import { catchAsync } from "../utils/catchAsync.util";
 export const register=async(req:Request,res:Response,next:NextFunction)=>{
     try {
         const {full_name,email,password}=req.body;
+        const file=req.file;
+        const profile_image=file?.path;
 
         if(!full_name){
             // const error:any=new Error("full_name is required");
@@ -34,7 +36,7 @@ export const register=async(req:Request,res:Response,next:NextFunction)=>{
             throw new AppError("password is required",400);
         }
 
-        const user=new User ({full_name,email});
+        const user=new User ({full_name,email,profile_image});
 
         //! hash Password
         const hash=hashPassword(password);
@@ -51,6 +53,7 @@ export const register=async(req:Request,res:Response,next:NextFunction)=>{
             data:{
                 full_name:user.full_name,
                 email:user.email,
+                profile_image:user.profile_image,
                 role:user.role,
             },
             status:"success",
