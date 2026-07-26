@@ -2,6 +2,7 @@ import express from 'express';
 import { errorHandler } from './middlewares/errorHandler.middleware';
 import authRoutes from './routes/auth.routes';
 import brandRoutes from './routes/brand.routes';
+import categoryRoutes from "./routes/category.routes"
 import AppError from './utils/customError.util';
 
 const app=express();
@@ -13,6 +14,7 @@ app.use(express.json());
 //! using routes
 app.use("/api/auth",authRoutes);
 app.use("/api/brand",brandRoutes);
+app.use("/api/category",categoryRoutes);
 
 
 //! health route

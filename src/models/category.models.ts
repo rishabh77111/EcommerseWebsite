@@ -23,7 +23,6 @@ const categorySchema=new mongoose.Schema({
             type:String,
             required:true,
         },
-         required: [true, "image is required"],
     }
 },{timestamps:true});
 
