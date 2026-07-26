@@ -14,10 +14,22 @@ const brandSchema=new mongoose.Schema({
     },
 
     logo:{
-        type:String,
+        path:{
+            type:String,
+            required:true,
+        },
+        public_id:{
+            type:String,
+            required:true,
+        }
+
     }
 
-},{timestamps:true});
+},{timestamps:true,toJSON:{transform: (doc, ret:any)=> {
+      delete ret._id;
+      delete ret.__v;
+      // keep ret.id if you still want a clean id field, or delete that too
+    }}});
 
 const Brand=mongoose.model("brand",brandSchema);
 export default Brand;

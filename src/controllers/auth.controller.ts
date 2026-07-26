@@ -4,6 +4,7 @@ import { comparePassword, hashPassword } from "../utils/bcrypt.util";
 import AppError from "../utils/customError.util";
 import { catchAsync } from "../utils/catchAsync.util";
 import { upload } from "../utils/cloudinary.util";
+import { genrateToken } from "../utils/jwt.util";
 
 export const register=async(req:Request,res:Response,next:NextFunction)=>{
     try {
@@ -96,6 +97,13 @@ export const login=catchAsync(async(req:Request,res:Response,next:NextFunction)=
             throw new AppError("Invalid Credentials",400);
         }
 
+         //! genrate token
+        const access_token=genrateToken({
+            _id:user._id,
+            email:user.email,
+            role:user.role,
+        });
+
         //! success response
           res.status(200).json({
             message:"User Logged in Successfully",
@@ -104,6 +112,7 @@ export const login=catchAsync(async(req:Request,res:Response,next:NextFunction)=
                 email:user.email,
                 role:user.role,
             },
+            access_token,
             status:"success",
             success:true,
         }); 
