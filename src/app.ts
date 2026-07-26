@@ -4,11 +4,13 @@ import authRoutes from './routes/auth.routes';
 import brandRoutes from './routes/brand.routes';
 import categoryRoutes from "./routes/category.routes"
 import AppError from './utils/customError.util';
+import cookieParser from 'cookie-parser';
 
 const app=express();
 
 //! inbuilt middleware
 app.use(express.json());
+app.use(cookieParser());
 
 
 //! using routes
