@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { kMaxLength } from 'node:buffer';
+
 import { ImageSchema } from './image.model';
-import Brand from './brand.model';
+
 
 const productSchema=new mongoose.Schema({
 
@@ -69,3 +69,6 @@ const productSchema=new mongoose.Schema({
     }
 
 },{timestamps:true})
+
+const Product= mongoose.model("product",productSchema);
+export default Product;
