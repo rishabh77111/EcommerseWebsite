@@ -3,7 +3,7 @@ import User from "../models/user.model";
 import { comparePassword, hashPassword } from "../utils/bcrypt.util";
 import AppError from "../utils/customError.util";
 import { catchAsync } from "../utils/catchAsync.util";
-import { upload } from "../utils/cloudinary.util";
+import { deleteFromCloudinary, upload } from "../utils/cloudinary.util";
 import { genrateToken } from "../utils/jwt.util";
 import ENV_CONFIG from "../config/env.config";
 
@@ -125,4 +125,36 @@ export const login=catchAsync(async(req:Request,res:Response,next:NextFunction)=
             status:"success",
             success:true,
         }); 
+})
+
+
+
+//* change profile image
+
+export const changeProfile=catchAsync(async(req,res)=>{
+    const file=req.file;
+    const userId=req.user?.id;
+    if(!file){
+        throw new AppError("image is required",400);
+    }
+    const user=await User.findOne({_id:userId});
+     if(!user){
+        throw new AppError("user not found",404);
+    }
+    if(user.profile_image){
+        deleteFromCloudinary(user.profile_image.public_id);
+    }
+    
+    const {path,public_id}=await upload(file,"/profile_image");
+    user.profile_image={
+        path,
+        public_id,
+    };
+
+    await user.save();
+    res.status(201).json({
+        message:"profile_image updated",
+        data:user,
+    })
+
 })
