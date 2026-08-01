@@ -1,4 +1,4 @@
-import { info } from "node:console";
+
 import { transporter } from "../config/nodemailer.config";
 interface IMailOptions{
     to:string|string[];
