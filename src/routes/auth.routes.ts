@@ -1,5 +1,5 @@
 import express from 'express';
-import { changeProfile, login, register } from '../controllers/auth.controller';
+import { changePassword, changeProfile, getProfile, login, register } from '../controllers/auth.controller';
 import { uploader } from '../middlewares/multer.middleware';
 import { authenticate } from '../middlewares/authenticate.middleware';
 
@@ -9,6 +9,8 @@ const upload=uploader();
 
 router.post("/register",upload.single("profile_image"),register);
 router.post("/login",login);
-router.put('/profile-image',upload.single("profile_image"),authenticate(),changeProfile)
+router.put('/profile-image',upload.single("profile_image"),authenticate(),changeProfile);
+router.get("/profile", authenticate(), getProfile);
+router.put("/change-password", authenticate(), changePassword);
 
 export default router;

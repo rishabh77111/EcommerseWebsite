@@ -6,13 +6,7 @@ import { deleteFromCloudinary, upload } from "../utils/cloudinary.util";
 export const getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const filter: Record<string, any> = {};
-        const {
-            query,
-            page = 1,
-            perPage = 10,
-            sortBy = "createdAt",
-            order = "DESC",
-        } = req.query;
+        const {query,page = 1,perPage = 10,sortBy = "createdAt",order = "DESC"} = req.query;
 
         // convert query string values (always strings) into real numbers
         const currentPage = Number(page);

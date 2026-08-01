@@ -178,4 +178,42 @@ export const changeProfile=catchAsync(async(req,res)=>{
         data:user,
     })
 
-})
+});
+
+//* get profile
+
+export const getProfile = catchAsync(async (req, res) => {
+  const id = req.user._id;
+  const user = await User.findOne({ _id: id });
+  if (!user) throw new AppError("profile not found", 400);
+  res.status(200).json({
+    message: "profile fetched",
+    data: user,
+  });
+});
+
+
+//* change password
+
+export const changePassword = catchAsync(async (req, res) => {
+  const id = req.user._id;
+  const { new_password, password } = req.body;
+ 
+  if (!new_password) throw new AppError("new password is required", 400);
+  if (!password) throw new AppError("old password is required", 400);
+ 
+  const user = await User.findOne({ _id: id }).select("+password");
+  if (!user) throw new AppError("user not found", 404);
+ 
+  const isOldPassMatched = await comparePassword(password, user.password);
+  if (!isOldPassMatched) throw new AppError("passwords does not matched", 400);
+ 
+  const hash = await hashPassword(new_password);
+  user.password = hash;
+  await user.save();
+   res.status(200).json({
+    message: "password changed",
+    data: null,
+  });
+ 
+});
