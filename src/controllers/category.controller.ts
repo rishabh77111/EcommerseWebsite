@@ -3,49 +3,68 @@ import Category from "../models/category.models";
 import AppError from "../utils/customError.util";
 import { deleteFromCloudinary, upload } from "../utils/cloudinary.util";
 
-export const getAll=async(req:Request,res:Response,next:NextFunction)=>{
+export const getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const filter: Record<string, any> = {};
+        const {
+            query,
+            page = 1,
+            perPage = 10,
+            sortBy = "createdAt",
+            order = "DESC",
+        } = req.query;
 
-        const filter:Record<string,any>={};
-        const {query}=req.query;
-        if(query){
-            // filter.name={
-            //     $regex:query,
-            //     $options:"i",
-            // };
+        // convert query string values (always strings) into real numbers
+        const currentPage = Number(page);
+        const limit = Number(perPage);
+        const skip = (currentPage - 1) * limit;
 
-            filter.$or=[
+        if (query) {
+            filter.$or = [
                 {
-                    name:{
-                      $regex:query,
-                      $options:"i",  
-                    }
+                    name: {
+                        $regex: query,
+                        $options: "i",
+                    },
                 },
                 {
-                    description:{
-                        $regex:query,
-                        $options:"i", 
-                    }
-                }
-            ]
-               
-            
-        }
-        const category=await Category.find(filter);
-        if(category.length===0){
-            throw new AppError("No category available",400);
+                    description: {
+                        $regex: query,
+                        $options: "i",
+                    },
+                },
+            ];
         }
 
-         res.status(200).json({
-             message:"category fetch successfully",
-            data:category,
-            status:"succes",
-         });
+        const category = await Category.find(filter)
+            .limit(limit)
+            .skip(skip)
+            .sort({ [sortBy as string]: order === "DESC" ? -1 : 1 });
+
+        if (category.length === 0) {
+            throw new AppError("No category available", 400);
+        }
+
+        // total count of ALL matching documents (ignoring skip/limit),
+        // needed to calculate total pages for the client
+        const totalCount = await Category.countDocuments(filter);
+
+        res.status(200).json({
+            message: "category fetch successfully",
+            data: category,
+            pagination: {
+                currentPage,
+                perPage: limit,
+                totalItems: totalCount,
+                totalPages: Math.ceil(totalCount / limit),
+            },
+            status: "success",
+        });
     } catch (error) {
-          next(error);
+        next(error);
     }
+};
 
-}
 
 export const getById=async(req:Request,res:Response,next:NextFunction)=>{
     try {
