@@ -28,9 +28,7 @@ router.get("/brand/:brandId", getByBrand);
 router.get("/:id", getById);
 
 // {cover_image:[{}] , images:[{},{},{}] , field:[{},{}]}
-router.post(
-  "/",
-  authenticate([Role.ADMIN, Role.SUPER_ADMIN]),
+router.post("/",authenticate([Role.ADMIN, Role.SUPER_ADMIN]),
   upload.fields([
     {
       name: "cover_image",
@@ -46,7 +44,10 @@ router.post(
 router.put(
   "/:id",
   authenticate([Role.ADMIN, Role.SUPER_ADMIN]),
-  upload.single("logo"),
+  upload.fields([
+    { name: "cover_image", maxCount: 1 },
+    { name: "images", maxCount: 5 },
+  ]),
   update,
 );
 router.delete("/:id", authenticate([Role.ADMIN, Role.SUPER_ADMIN]), remove);

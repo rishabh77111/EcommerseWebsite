@@ -5,7 +5,33 @@ import { deleteFromCloudinary, upload } from "../utils/cloudinary.util";
 
 export const getAll=async(req:Request,res:Response,next:NextFunction)=>{
     try {
-            const category=await Category.find();
+
+        const filter:Record<string,any>={};
+        const {query}=req.query;
+        if(query){
+            // filter.name={
+            //     $regex:query,
+            //     $options:"i",
+            // };
+
+            filter.$or=[
+                {
+                    name:{
+                      $regex:query,
+                      $options:"i",  
+                    }
+                },
+                {
+                    description:{
+                        $regex:query,
+                        $options:"i", 
+                    }
+                }
+            ]
+               
+            
+        }
+        const category=await Category.find(filter);
         if(category.length===0){
             throw new AppError("No category available",400);
         }

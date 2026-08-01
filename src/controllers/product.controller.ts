@@ -44,16 +44,7 @@ export const getById = catchAsync(async (req, res) => {
 
 //* create
 export const create = catchAsync(async (req, res) => {
-  const {
-    name,
-    price,
-    description,
-    is_featured,
-    new_arrival,
-    stock,
-    brand,
-    category,
-  } = req.body;
+  const {name,price,description,is_featured,new_arrival,stock,brand,category} = req.body;
 
   const { cover_image, images } = req.files as {
     cover_image: Express.Multer.File[];
@@ -62,6 +53,8 @@ export const create = catchAsync(async (req, res) => {
 
   if (!name) throw new AppError("name is required", 400);
   if (!price) throw new AppError("price is required", 400);
+  if (!description) throw new AppError("description is required", 400);
+  if (!stock) throw new AppError("stock is required", 400);
   if (!brand) throw new AppError("brand is required", 400);
   if (!category) throw new AppError("category is required", 400);
   if (!cover_image[0]) throw new AppError("cover_image is required", 400);
@@ -107,20 +100,11 @@ export const create = catchAsync(async (req, res) => {
   });
 });
 
-// deleted_images = [public_id]  req,body
+
+//* update
 export const update = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const {
-    name,
-    price,
-    description,
-    is_featured,
-    new_arrival,
-    stock,
-    brand,
-    category,
-    deleted_images,
-  } = req.body;
+  const {name,price,description,is_featured,new_arrival,stock,brand,category,deleted_images,} = req.body;
 
   const { cover_image, images } = req.files as {
     cover_image: Express.Multer.File[];
@@ -131,39 +115,50 @@ export const update = catchAsync(async (req, res) => {
 
   if (!product) throw new AppError("product not found", 404);
 
-  if (name) product.name;
-  if (description) product.description;
-  if (price) product.price;
-  if (category) product.category;
-  if (brand) product.brand;
-  if (stock) product.stock;
-  if (is_featured) product.is_featured;
-  if (new_arrival) product.new_arrival;
+  if (name) product.name = name;
+  if (description) product.description = description;
+  if (price) product.price = price;
+  if (category) product.category = category;
+  if (brand) product.brand = brand;
+  if (stock) product.stock = stock;
+  if (is_featured) product.is_featured = is_featured;
+  if (new_arrival) product.new_arrival = new_arrival;
 
-  //* cover image
   const folder = "/products";
-  if (cover_image[0]) {
-    deleteFromCloudinary(product.cover_image.public_id);
+
+  //* cover image — : added cover_image && check so it doesn't
+  //* crash when no new cover image is sent during an update
+  if (cover_image && cover_image[0]) {
+    await deleteFromCloudinary(product.cover_image.public_id);
 
     const { path, public_id } = await upload(cover_image[0], folder);
 
     product.cover_image = { path, public_id };
   }
 
-  //* if deleted images
-  if (
-    deleted_images &&
-    Array.isArray(deleted_images) &&
-    deleted_images.length > 0
-  ) {
-    // delete image from cloud
-    // filter product images
-  }
-  //* if new images
-  if (images && images.length > 0) {
-    // upload new images to cloud
-    // add images on product.images
-  }
+  //* if deleted images —: implemented actual delete logic
+ if (deleted_images &&Array.isArray(deleted_images) &&deleted_images.length > 0) {
+  await Promise.allSettled(
+    deleted_images.map((publicId: string) => deleteFromCloudinary(publicId))
+  );
+
+  const filteredImages = product.images.filter(
+    (img) => !deleted_images.includes(img.public_id)
+  );
+
+  product.set("images", filteredImages);
+}
+
+  //* if new images — implemented actual upload + append logic
+ if (images && images.length > 0) {
+  const promises = images.map((file) => upload(file, folder));
+  const results = await Promise.allSettled(promises);
+  const successImages = results
+    .filter((r) => r.status === "fulfilled")
+    .map((r: any) => r.value);
+
+  product.set("images", [...product.images, ...successImages]);
+}
 
   //* save
   await product.save();
@@ -179,10 +174,10 @@ export const remove = catchAsync(async (req, res) => {
   const product = await Product.findOne({ _id: id });
 
   if (!product) throw new AppError("product not found", 404);
-  deleteFromCloudinary(product.cover_image.public_id);
+    await deleteFromCloudinary(product.cover_image.public_id);
 
   if (product.images && product.images.length > 0) {
-    Promise.allSettled(
+    await Promise.allSettled(
       product.images.map((img) => deleteFromCloudinary(img.public_id)),
     );
   }
@@ -198,7 +193,7 @@ export const remove = catchAsync(async (req, res) => {
 export const getByCategory = catchAsync(async (req, res) => {
   const { categoryId } = req.params;
 
-  const products = await Product.findOne({ category: categoryId })
+  const products = await Product.find({ category: categoryId })
     .populate("category")
     .populate("brand");
 
@@ -223,7 +218,7 @@ export const getByBrand = catchAsync(async (req, res) => {
 
 //* get featured products
 export const getFeatured = catchAsync(async (req, res) => {
-  const products = await Product.findOne({ is_featured: true })
+  const products = await Product.find({ is_featured: true })
     .populate("category")
     .populate("brand");
   res.status(200).json({
@@ -234,7 +229,7 @@ export const getFeatured = catchAsync(async (req, res) => {
 
 //* get new arrivals
 export const newArrivals = catchAsync(async (req, res) => {
-  const products = await Product.findOne({ new_arrival: true })
+  const products = await Product.find({ new_arrival: true })
     .populate("category")
     .populate("brand");
   res.status(200).json({

@@ -6,6 +6,8 @@ import { catchAsync } from "../utils/catchAsync.util";
 import { deleteFromCloudinary, upload } from "../utils/cloudinary.util";
 import { genrateToken } from "../utils/jwt.util";
 import ENV_CONFIG from "../config/env.config";
+import { sendEmail } from "../utils/sendEmail.util";
+import { accountCreatedHtml, newLoginDetectedHtml } from "../utils/emailTemplate.util";
 
 export const register=async(req:Request,res:Response,next:NextFunction)=>{
     try {
@@ -56,6 +58,20 @@ export const register=async(req:Request,res:Response,next:NextFunction)=>{
 
         await user.save();
 
+        console.log("Register started");
+
+await sendEmail({
+  to: user.email,
+  subject: "Account Created Successfully",
+  html: accountCreatedHtml({
+    email: user.email,
+    fullName: user.full_name,
+    createdAt: new Date(),
+  }),
+});
+
+console.log("Register email function finished");
+
         //! success response
         res.status(201).json({
             message:"Account Created",
@@ -105,6 +121,10 @@ export const login=catchAsync(async(req:Request,res:Response,next:NextFunction)=
             role:user.role,
         });
 
+        //! send email
+        await sendEmail({ to: user.email,subject: "Account logged in",html: newLoginDetectedHtml({email:user.email,fullName:user.full_name,loginAt:new Date(Date.now()),userAgent:req.headers["user-agent"] as string}),
+        });
+
         //! set cookies
         res.cookie("access_token",access_token,{
             secure:ENV_CONFIG.NODE_ENV==="development"? false:true,
@@ -151,7 +171,8 @@ export const changeProfile=catchAsync(async(req,res)=>{
         public_id,
     };
 
-    await user.save();
+   await user.save();
+   
     res.status(201).json({
         message:"profile_image updated",
         data:user,

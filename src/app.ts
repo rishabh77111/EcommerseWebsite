@@ -2,7 +2,8 @@ import express from 'express';
 import { errorHandler } from './middlewares/errorHandler.middleware';
 import authRoutes from './routes/auth.routes';
 import brandRoutes from './routes/brand.routes';
-import categoryRoutes from "./routes/category.routes"
+import categoryRoutes from "./routes/category.routes";
+import productRoutes from "./routes/product.routes";
 import AppError from './utils/customError.util';
 import cookieParser from 'cookie-parser';
 
@@ -17,6 +18,7 @@ app.use(cookieParser());
 app.use("/api/auth",authRoutes);
 app.use("/api/brand",brandRoutes);
 app.use("/api/category",categoryRoutes);
+app.use("/api/product",productRoutes);
 
 
 //! health route
